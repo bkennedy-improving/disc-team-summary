@@ -22,6 +22,14 @@ This dashboard was created to facilitate executive communication workshops focus
 - **CSV Import** - Easily load team data from external files
 - **Dual Display Modes** - Show Adaptive, Natural, or both on the wheel
 
+## Screenshots
+
+### DISC Wheel Visualization
+![DISC Wheel](wheel.png)
+
+### Team Summary Dashboard
+![Team Summary](team-summary.png)
+
 ## CSV Format
 
 To import team data, create a CSV file with the following format:
