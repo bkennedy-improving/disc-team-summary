@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISC Wheel - Multiple People</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #4a9eff;
+            font-size: 1.5rem;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 100%;
+        }
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .canvas-container {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            width: 840px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .controls h2 {
+            margin-bottom: 15px;
+            color: #4a9eff;
+            font-size: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #0f3460;
+            color: #eee;
+            font-size: 1rem;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.selected {
+            border-color: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4a9eff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #3a8eef;
+        }
+        .people-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .person-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #0f3460;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .person-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .delete-btn {
+            background: #e94560;
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        .delete-btn:hover {
+            background: #d93550;
+        }
+        .coordinates {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .summary {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            width: 840px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        .summary .stat-bars {
+            gap: 15px;
+        }
+        .summary .stat-bar {
+            flex: 1;
+            min-width: 80px;
+        }
+        .pie-chart-row {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .pie-chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .pie-chart-container canvas {
+            display: block;
+        }
+        .pie-chart-label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        .pie-legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .disc-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .disc-category {
+            flex: 1;
+            min-width: 120px;
+        }
+        .disc-category {
+            background: #0f3460;
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+        .disc-category-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .disc-category-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .disc-category-people {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        .disc-category-person {
+            font-size: 0.8rem;
+            color: #ccc;
+            padding: 2px 0;
+        }
+        .summary h2 {
+            margin-bottom: 15px;
+            color: #4a9eff;
+            font-size: 1.2rem;
+        }
+        .stat-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        .stat-bars {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .stat-bar {
+            flex: 1;
+            min-width: 60px;
+        }
+        .stat-bar-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .stat-bar-fill {
+            height: 20px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #fff;
+            transition: width 0.3s;
+        }
+        .disc-d { background: #e94560; }
+        .disc-i { background: #f9a826; }
+        .disc-s { background: #26de81; }
+        .disc-c { background: #4a9eff; }
+        .orientation-bar {
+            height: 24px;
+            border-radius: 3px;
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+        }
+        .orientation-gradient {
+            height: 100%;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .orientation-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .total-count {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+        .natural-summary {
+            display: none;
+        }
+        .natural-summary.visible {
+            display: block;
+        }
+        .toggle-button {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .toggle-button:hover {
+            background: #3a8eef;
+        }
+    </style>
+</head>
+<body>
+    <h1>DISC Wheel - Multiple People</h1>
+    <div class="container">
+        <div class="left-column">
+            <div class="canvas-container">
+                <canvas id="discWheel" width="800" height="800"></canvas>
+            </div>
+            <div class="summary">
+                <h2>Team Summary (Adaptive)</h2>
+                <div class="stat-group">
+                    <div class="stat-label">DISC Distribution (Adaptive)</div>
+                    <div class="pie-chart-row">
+                        <div class="pie-chart-container">
+                            <canvas id="adaptivePie" width="180" height="180"></canvas>
+                        </div>
+                    </div>
+                    <div class="pie-legend" id="adaptiveLegend"></div>
+                </div>
+                <div class="stat-group">
+                    <div class="stat-label">Task vs People Orientation (Adaptive)</div>
+                    <div class="orientation-bar" id="orientationBar"></div>
+                    <div style="color: #888; font-size: 0.75rem; margin-top: 8px; line-height: 1.3;">
+                        <strong>Task (D, C):</strong> Focused on objectives, results, and logical outcomes.<br>
+                        <strong>People (I, S):</strong> Focused on relationships, team dynamics, and human impact.
+                    </div>
+                </div>
+                <div class="stat-group">
+                    <div class="stat-label">Fast vs Slow Pace (Adaptive)</div>
+                    <div class="orientation-bar" id="paceBar"></div>
+                    <div style="color: #888; font-size: 0.75rem; margin-top: 8px; line-height: 1.3;">
+                        <strong>Fast (D, I):</strong> Driven by velocity, energy, and immediate action.<br>
+                        <strong>Slow (S, C):</strong> Driven by stability, accuracy, and thoughtful consideration.
+                    </div>
+                </div>
+                <div class="total-count" id="totalCount"></div>
+                <div class="stat-group">
+                    <div class="stat-label">Team by DISC Category & Communication Rules</div>
+                    <div class="disc-categories" id="discCategories"></div>
+                </div>
+            </div>
+            <button class="toggle-button" onclick="toggleNaturalSummary()">Show Natural Summary</button>
+            <div class="summary natural-summary" id="naturalSummary">
+                <h2>Team Summary (Natural)</h2>
+                <div class="stat-group">
+                    <div class="stat-label">DISC Distribution (Natural)</div>
+                    <div class="pie-chart-row">
+                        <div class="pie-chart-container">
+                            <canvas id="naturalPie" width="180" height="180"></canvas>
+                        </div>
+                    </div>
+                    <div class="pie-legend" id="naturalLegend"></div>
+                </div>
+                <div class="stat-group">
+                    <div class="stat-label">Task vs People Orientation (Natural)</div>
+                    <div class="orientation-bar" id="orientationBarNatural"></div>
+                    <div style="color: #888; font-size: 0.75rem; margin-top: 8px; line-height: 1.3;">
+                        <strong>Task (D, C):</strong> Focused on objectives, results, and logical outcomes.<br>
+                        <strong>People (I, S):</strong> Focused on relationships, team dynamics, and human impact.
+                    </div>
+                </div>
+                <div class="stat-group">
+                    <div class="stat-label">Fast vs Slow Pace (Natural)</div>
+                    <div class="orientation-bar" id="paceBarNatural"></div>
+                    <div style="color: #888; font-size: 0.75rem; margin-top: 8px; line-height: 1.3;">
+                        <strong>Fast (D, I):</strong> Driven by velocity, energy, and immediate action.<br>
+                        <strong>Slow (S, C):</strong> Driven by stability, accuracy, and thoughtful consideration.
+                    </div>
+                </div>
+                <div class="total-count" id="totalCountNatural"></div>
+                <div class="stat-group">
+                    <div class="stat-label">Team by DISC Category (Natural)</div>
+                    <div class="disc-categories" id="discCategoriesNatural"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <h2>Add Person</h2>
+            <div class="form-group">
+                <label for="personName">Name</label>
+                <input type="text" id="personName" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label for="adaptiveSegment">Adaptive Segment (1-61, 61 = center)</label>
+                <input type="number" id="adaptiveSegment" min="1" max="61" value="1">
+            </div>
+            <div class="form-group">
+                <label for="naturalSegment">Natural Segment (1-61, 61 = center)</label>
+                <input type="number" id="naturalSegment" min="1" max="61" value="1">
+            </div>
+            <div class="form-group">
+                <label>Show</label>
+                <div style="display: flex; gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="filter" value="both" checked onchange="drawWheel()">
+                        Both
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="filter" value="adaptive" onchange="drawWheel()">
+                        Adaptive (★)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="filter" value="natural" onchange="drawWheel()">
+                        Natural (●)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="showDiagonalTension" onchange="drawWheel()">
+                    Show Diagonal Tension Lines
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="csvInput">Import from CSV</label>
+                <input type="file" id="csvInput" accept=".csv" onchange="importCSV()">
+            </div>
+            <button onclick="addPerson()">Add Person</button>
+            <div class="people-list" id="peopleList"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('discWheel');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 300;
+        
+        // Ring structure (innermost to outermost)
+        const ringStructure = [
+            { segmentsPerSection: 0.5, startNumber: 57 },  // Ring 4 (innermost, only 4 sections have segments)
+            { segmentsPerSection: 2, startNumber: 41 },  // Ring 3
+            { segmentsPerSection: 2, startNumber: 25 },  // Ring 2
+            { segmentsPerSection: 2, startNumber: 9 },   // Ring 1
+            { segmentsPerSection: 1, startNumber: 1 }   // Ring 0 (outermost)
+        ];
+        const totalRings = ringStructure.length;
+        
+        let people = [];
+        let hoveredPersonIndex = -1;
+        let cachedPositions = []; // Cache for hover detection
+
+        // Communication templates for each DISC quadrant
+        const communicationTemplates = {
+            'D': {
+                title: 'Fast / Task (D) - Velocity & Control',
+                rule: 'Give me the bottom line in the first sentence.',
+                description: 'Driven by velocity & control. Default lens: "What\'s the bottom line?" Lead with the choice & deadline. Focus on results and direct communication.'
+            },
+            'I': {
+                title: 'Fast / People (I) - Energy & Vision',
+                rule: 'Start with the big picture idea before jumping into execution roadblocks.',
+                description: 'Driven by energy & vision. Default lens: "Imagine what\'s possible." Lead with vision & team momentum. Focus on enthusiasm and big-picture thinking.'
+            },
+            'S': {
+                title: 'Slow / People (S) - Stability & Harmony',
+                rule: 'Give me context before asking for a decision; don\'t force a split-second answer.',
+                description: 'Driven by stability & harmony. Default lens: "How does this affect the team?" Lead with stability & sequence. Focus on team impact and thoughtful consideration.'
+            },
+            'C': {
+                title: 'Slow / Task (C) - Accuracy & Logic',
+                rule: 'Send the underlying data or audit log beforehand so I can verify the logic.',
+                description: 'Driven by accuracy & logic. Default lens: "Where is the supporting data?" Lead with data & technical cause. Focus on precision and evidence-based decisions.'
+            }
+        };
+
+        // DISC quadrant labels
+        const quadrantLabels = {
+            'D': { name: 'D', sublabels: ['Conductor', 'Persuader'], angle: -45 },
+            'I': { name: 'I', sublabels: ['Promoter', 'Relater'], angle: 45 },
+            'S': { name: 'S', sublabels: ['Supporter', 'Coordinator'], angle: 135 },
+            'C': { name: 'C', sublabels: ['Analyzer', 'Implementor'], angle: 225 }
+        };
+
+        function getDiscColor(disc) {
+            const colors = {
+                'D': '#e94560',
+                'I': '#f9a826',
+                'S': '#26de81',
+                'C': '#4a9eff',
+                'Neutral': '#888888'
+            };
+            return colors[disc] || '#888888';
+        }
+
+        function toggleNaturalSummary() {
+            const naturalSummary = document.getElementById('naturalSummary');
+            const toggleButton = document.querySelector('.toggle-button');
+
+            if (naturalSummary.classList.contains('visible')) {
+                naturalSummary.classList.remove('visible');
+                toggleButton.textContent = 'Show Natural Summary';
+            } else {
+                naturalSummary.classList.add('visible');
+                toggleButton.textContent = 'Hide Natural Summary';
+            }
+        }
+
+        function importCSV() {
+            const fileInput = document.getElementById('csvInput');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const newPeople = [];
+
+                // Skip header row, process data rows
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const parts = line.split(',');
+                    if (parts.length >= 3) {
+                        newPeople.push({
+                            name: parts[0].trim(),
+                            adaptiveSegment: parseInt(parts[1].trim()),
+                            naturalSegment: parseInt(parts[2].trim())
+                        });
+                    }
+                }
+
+                if (newPeople.length > 0) {
+                    people = newPeople;
+                    updatePeopleList();
+                    drawWheel();
+                    updateSummary();
+                    alert(`Successfully imported ${newPeople.length} people from CSV`);
+                } else {
+                    alert('No valid data found in CSV file');
+                }
+
+                // Clear the file input
+                fileInput.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function drawDiagonalTensionLines(adaptiveGroups, naturalGroups) {
+            const showDiagonal = document.getElementById('showDiagonalTension').checked;
+            if (!showDiagonal) return;
+
+            const filter = document.querySelector('input[name="filter"]:checked')?.value || 'both';
+            const groupsToUse = [];
+
+            if (filter === 'both' || filter === 'adaptive') {
+                groupsToUse.push(adaptiveGroups);
+            }
+            if (filter === 'both' || filter === 'natural') {
+                groupsToUse.push(naturalGroups);
+            }
+
+            // Collect all people with their positions and DISC types
+            const allPeople = [];
+            groupsToUse.forEach(groups => {
+                Object.values(groups).forEach(group => {
+                    group.forEach(item => {
+                        const segment = item.type === 'adaptive' ? item.person.adaptiveSegment : item.person.naturalSegment;
+                        const disc = getDiscQuadrant(segment);
+                        if (disc && disc !== 'Neutral') {
+                            allPeople.push({
+                                name: item.person.name,
+                                x: item.pos.x,
+                                y: item.pos.y,
+                                disc: disc,
+                                type: item.type
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Remove duplicates (same person, different type)
+            const uniquePeople = [];
+            const seen = new Set();
+            allPeople.forEach(p => {
+                const key = `${p.name}-${p.type}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniquePeople.push(p);
+                }
+            });
+
+            // Draw diagonal lines: D↔S and I↔C
+            const diagonalPairs = [
+                { from: 'D', to: 'S', color: 'rgba(233, 69, 96, 0.4)' },
+                { from: 'I', to: 'C', color: 'rgba(249, 168, 38, 0.4)' }
+            ];
+
+            diagonalPairs.forEach(pair => {
+                const fromPeople = uniquePeople.filter(p => p.disc === pair.from);
+                const toPeople = uniquePeople.filter(p => p.disc === pair.to);
+
+                // Get gradient colors for this diagonal pair
+                const fromColor = getDiscColor(pair.from);
+                const toColor = getDiscColor(pair.to);
+
+                // Helper function to convert hex to rgba
+                function hexToRgba(hex, alpha) {
+                    const r = parseInt(hex.slice(1, 3), 16);
+                    const g = parseInt(hex.slice(3, 5), 16);
+                    const b = parseInt(hex.slice(5, 7), 16);
+                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
+
+                // Draw lines between each person in 'from' and each person in 'to'
+                fromPeople.forEach(fromPerson => {
+                    toPeople.forEach(toPerson => {
+                        // Create gradient from fromPerson to toPerson
+                        const gradient = ctx.createLinearGradient(
+                            fromPerson.x, fromPerson.y,
+                            toPerson.x, toPerson.y
+                        );
+                        gradient.addColorStop(0, hexToRgba(fromColor, 0.6));
+                        gradient.addColorStop(1, hexToRgba(toColor, 0.6));
+
+                        ctx.beginPath();
+                        ctx.moveTo(fromPerson.x, fromPerson.y);
+                        ctx.lineTo(toPerson.x, toPerson.y);
+                        ctx.strokeStyle = gradient;
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 5]); // Dashed line
+                        ctx.stroke();
+                        ctx.setLineDash([]); // Reset dash
+                    });
+                });
+            });
+        }
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#4a9eff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw 8 radial sections with correct numbering structure
+            const sections = 8;
+            const sectionAngle = (Math.PI * 2) / sections;
+            
+            // Section labels in clockwise order starting from top-right (Conductor)
+            // Section index: 0=Conductor, 1=Persuader, 2=Promoter, 3=Relater, 4=Supporter, 5=Coordinator, 6=Analyzer, 7=Implementor
+            const sectionLabels = [
+                'Conductor',      // 0
+                'Persuader',      // 1
+                'Promoter',       // 2
+                'Relater',        // 3
+                'Supporter',      // 4
+                'Coordinator',    // 5
+                'Analyzer',       // 6
+                'Implementor'     // 7
+            ];
+
+            // DISC quadrant colors (D=Red, I=Yellow, S=Green, C=Blue)
+            const discColors = {
+                'D': 'rgba(233, 69, 96, 0.15)',
+                'I': 'rgba(249, 168, 38, 0.15)',
+                'S': 'rgba(38, 222, 129, 0.15)',
+                'C': 'rgba(74, 158, 255, 0.15)'
+            };
+
+            // Map sections to DISC quadrants
+            const sectionToDisc = {
+                0: 'D',  // Conductor
+                1: 'D',  // Persuader
+                2: 'I',  // Promoter
+                3: 'I',  // Relater
+                4: 'S',  // Supporter
+                5: 'S',  // Coordinator
+                6: 'C',  // Analyzer
+                7: 'C'   // Implementor
+            };
+
+
+            // Draw radial dividers
+            for (let section = 0; section < sections; section++) {
+                const baseAngle = section * sectionAngle - Math.PI / 4 - Math.PI / 8;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + radius * Math.cos(baseAngle),
+                    centerY + radius * Math.sin(baseAngle)
+                );
+                ctx.strokeStyle = '#4a9eff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Draw segments for each ring
+            for (let ring = 0; ring < totalRings; ring++) {
+                const ringConfig = ringStructure[ring];
+                const innerRadius = (radius / totalRings) * ring;
+                const outerRadius = (radius / totalRings) * (ring + 1);
+                
+                if (ringConfig.segmentsPerSection === 0.5) {
+                    // Innermost ring: only 4 segments for sections 0, 2, 4, 6
+                    const innerSections = [0, 2, 4, 6]; // Conductor, Promoter, Supporter, Analyzer
+                    innerSections.forEach((section, idx) => {
+                        const segmentNumber = ringConfig.startNumber + idx;
+                        const baseAngle = section * sectionAngle - Math.PI / 4 - Math.PI / 8;
+                        const startAngle = baseAngle;
+                        const endAngle = baseAngle + sectionAngle;
+                        
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+                        ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+                        ctx.closePath();
+                        
+                        // Only apply DISC colors to outermost ring (ring 4, segments 1-8)
+                        if (ring === 4) {
+                            const discColor = discColors[sectionToDisc[section]];
+                            const isEven = segmentNumber % 2 === 0;
+                            ctx.fillStyle = isEven ? discColor.replace('0.15', '0.05') : discColor;
+                        } else {
+                            // Use neutral colors for inner rings
+                            const isEven = segmentNumber % 2 === 0;
+                            ctx.fillStyle = isEven ? 'rgba(200, 200, 200, 0.1)' : 'rgba(200, 200, 200, 0.15)';
+                        }
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(74, 158, 255, 0.3)';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                        
+                        const midAngle = startAngle + sectionAngle / 2;
+                        const midRadius = (innerRadius + outerRadius) / 2;
+                        ctx.font = '9px Arial';
+                        ctx.fillStyle = 'rgba(136, 136, 136, 0.8)';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(segmentNumber, centerX + midRadius * Math.cos(midAngle), centerY + midRadius * Math.sin(midAngle));
+                    });
+                } else {
+                    // Other rings: equal segments per section
+                    for (let section = 0; section < sections; section++) {
+                        // Rotate segments 9-56 to place under Implementor instead of Conductor
+                        // Segments 1-8 (ring 4) and 57-60 (ring 0) stay in place
+                        let sectionOffset = 0;
+                        if (ring === 1) {
+                            sectionOffset = -8.5; // Rotate ring 1 counter-clockwise
+                        } else if (ring === 2) {
+                            sectionOffset = -8.5; // Rotate ring 2
+                        } else if (ring === 3) {
+                            sectionOffset = -8.5; // Rotate ring 3
+                        }
+                        const baseAngle = (section + sectionOffset) * sectionAngle - Math.PI / 4 - Math.PI / 8;
+                        
+                        for (let seg = 0; seg < ringConfig.segmentsPerSection; seg++) {
+                            const segmentNumber = ringConfig.startNumber + (section * ringConfig.segmentsPerSection) + seg;
+                            const segmentAngle = sectionAngle / ringConfig.segmentsPerSection;
+                            const startAngle = baseAngle + seg * segmentAngle;
+                            const endAngle = startAngle + segmentAngle;
+                            
+                            // Special split colors for segments 2, 4, 6, 8 in outermost ring
+                            const splitSegments = { 2: ['red', 'yellow'], 4: ['yellow', 'green'], 6: ['green', 'blue'], 8: ['blue', 'red'] };
+                            
+                            if (ring === 4 && splitSegments[segmentNumber]) {
+                                // Draw gradient segment
+                                const midAngle = startAngle + segmentAngle / 2;
+                                const [leftColor, rightColor] = splitSegments[segmentNumber];
+                                
+                                const colorMap = {
+                                    'red': { r: 233, g: 69, b: 96 },
+                                    'yellow': { r: 249, g: 168, b: 38 },
+                                    'green': { r: 38, g: 222, b: 129 },
+                                    'blue': { r: 74, g: 158, b: 255 }
+                                };
+                                
+                                // Create gradient from left to right
+                                const leftRGB = colorMap[leftColor];
+                                const rightRGB = colorMap[rightColor];
+                                
+                                // Calculate gradient direction (from start to end angle)
+                                const gradient = ctx.createLinearGradient(
+                                    centerX + innerRadius * Math.cos(startAngle),
+                                    centerY + innerRadius * Math.sin(startAngle),
+                                    centerX + innerRadius * Math.cos(endAngle),
+                                    centerY + innerRadius * Math.sin(endAngle)
+                                );
+                                
+                                gradient.addColorStop(0, `rgba(${leftRGB.r}, ${leftRGB.g}, ${leftRGB.b}, 0.15)`);
+                                gradient.addColorStop(1, `rgba(${rightRGB.r}, ${rightRGB.g}, ${rightRGB.b}, 0.15)`);
+                                
+                                ctx.beginPath();
+                                ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+                                ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+                                ctx.closePath();
+                                ctx.fillStyle = gradient;
+                                ctx.fill();
+                                ctx.strokeStyle = 'rgba(74, 158, 255, 0.3)';
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                                
+                                // Draw number at midpoint
+                                const midRadius = (innerRadius + outerRadius) / 2;
+                                ctx.font = '9px Arial';
+                                ctx.fillStyle = 'rgba(136, 136, 136, 0.8)';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(segmentNumber, centerX + midRadius * Math.cos(midAngle), centerY + midRadius * Math.sin(midAngle));
+                            } else {
+                                // Normal segment
+                                ctx.beginPath();
+                                ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+                                ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+                                ctx.closePath();
+                                
+                                // Only apply DISC colors to outermost ring (ring 4, segments 1-8)
+                                if (ring === 4) {
+                                    const discColor = discColors[sectionToDisc[section]];
+                                    const isEven = segmentNumber % 2 === 0;
+                                    ctx.fillStyle = isEven ? discColor.replace('0.15', '0.05') : discColor;
+                                } else {
+                                    // Use neutral colors for inner rings
+                                    const isEven = segmentNumber % 2 === 0;
+                                    ctx.fillStyle = isEven ? 'rgba(200, 200, 200, 0.1)' : 'rgba(200, 200, 200, 0.15)';
+                                }
+                                ctx.fill();
+                                ctx.strokeStyle = 'rgba(74, 158, 255, 0.3)';
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                                
+                                const midAngle = startAngle + segmentAngle / 2;
+                                const midRadius = (innerRadius + outerRadius) / 2;
+                                ctx.font = '9px Arial';
+                                ctx.fillStyle = 'rgba(136, 136, 136, 0.8)';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(segmentNumber, centerX + midRadius * Math.cos(midAngle), centerY + midRadius * Math.sin(midAngle));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Draw Fast/Slow and Task/People labels around the wheel with gradients
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Fast (right side) - D (red) to I (yellow) gradient
+            const fastGradient = ctx.createLinearGradient(centerX + radius + 20, centerY, centerX + radius + 80, centerY);
+            fastGradient.addColorStop(0, '#e94560');
+            fastGradient.addColorStop(1, '#f9a826');
+            ctx.fillStyle = fastGradient;
+            const fastX = centerX + (radius + 50) * Math.cos(0);
+            const fastY = centerY + (radius + 50) * Math.sin(0);
+            ctx.fillText('Fast', fastX, fastY);
+            
+            // Slow (left side) - S (green) to C (blue) gradient
+            const slowGradient = ctx.createLinearGradient(centerX - radius - 80, centerY, centerX - radius - 20, centerY);
+            slowGradient.addColorStop(0, '#26de81');
+            slowGradient.addColorStop(1, '#4a9eff');
+            ctx.fillStyle = slowGradient;
+            const slowX = centerX + (radius + 50) * Math.cos(Math.PI);
+            const slowY = centerY + (radius + 50) * Math.sin(Math.PI);
+            ctx.fillText('Slow', slowX, slowY);
+            
+            // Task (top) - D (red) to C (blue) gradient
+            const taskGradient = ctx.createLinearGradient(centerX, centerY - radius - 80, centerX, centerY - radius - 20);
+            taskGradient.addColorStop(0, '#e94560');
+            taskGradient.addColorStop(1, '#4a9eff');
+            ctx.fillStyle = taskGradient;
+            const taskX = centerX + (radius + 50) * Math.cos(-Math.PI / 2);
+            const taskY = centerY + (radius + 50) * Math.sin(-Math.PI / 2);
+            ctx.fillText('Task', taskX, taskY);
+            
+            // People (bottom) - I (yellow) to S (green) gradient
+            const peopleGradient = ctx.createLinearGradient(centerX, centerY + radius + 20, centerX, centerY + radius + 80);
+            peopleGradient.addColorStop(0, '#f9a826');
+            peopleGradient.addColorStop(1, '#26de81');
+            ctx.fillStyle = peopleGradient;
+            const peopleX = centerX + (radius + 50) * Math.cos(Math.PI / 2);
+            const peopleY = centerY + (radius + 50) * Math.sin(Math.PI / 2);
+            ctx.fillText('People', peopleX, peopleY);
+
+            // Draw DISC labels outside the wheel
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const discLabels = [
+                { label: 'D', color: '#e94560', angle: -45 },
+                { label: 'I', color: '#f9a826', angle: 45 },
+                { label: 'S', color: '#26de81', angle: 135 },
+                { label: 'C', color: '#4a9eff', angle: 225 }
+            ];
+            
+            discLabels.forEach(disc => {
+                const baseAngle = disc.angle * Math.PI / 180;
+                const labelRadius = radius + 55;
+                const labelX = centerX + labelRadius * Math.cos(baseAngle);
+                const labelY = centerY + labelRadius * Math.sin(baseAngle);
+                
+                ctx.fillStyle = disc.color;
+                ctx.fillText(disc.label, labelX, labelY);
+            });
+
+            // Draw center dot
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#4a9eff';
+            ctx.fill();
+
+            // Get filter selection
+            const filter = document.querySelector('input[name="filter"]:checked')?.value || 'both';
+
+            // Draw people dots
+            // Function to draw a star
+            function drawStar(cx, cy, spikes, outerRadius, innerRadius, color, stroke = true) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                let step = Math.PI / spikes;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                if (stroke) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            // Group people by position for adaptive and natural segments
+            const adaptiveGroups = {};
+            const naturalGroups = {};
+            cachedPositions = []; // Clear and rebuild cache
+            people.forEach((person, index) => {
+                const adaptivePos = calculatePosition(person.adaptiveSegment);
+                const naturalPos = calculatePosition(person.naturalSegment);
+                cachedPositions[index] = { adaptive: adaptivePos, natural: naturalPos };
+                
+                const adaptiveKey = `${Math.round(adaptivePos.x)},${Math.round(adaptivePos.y)}`;
+                const naturalKey = `${Math.round(naturalPos.x)},${Math.round(naturalPos.y)}`;
+                
+                if (!adaptiveGroups[adaptiveKey]) {
+                    adaptiveGroups[adaptiveKey] = [];
+                }
+                adaptiveGroups[adaptiveKey].push({ person, pos: adaptivePos, index, type: 'adaptive' });
+                
+                if (!naturalGroups[naturalKey]) {
+                    naturalGroups[naturalKey] = [];
+                }
+                naturalGroups[naturalKey].push({ person, pos: naturalPos, index, type: 'natural' });
+            });
+
+            // Draw diagonal tension lines (behind markers)
+            drawDiagonalTensionLines(adaptiveGroups, naturalGroups);
+
+            // Draw markers (unified function for both adaptive and natural)
+            function drawMarkerGroup(groups, markerType) {
+                // First pass: draw non-hovered markers
+                Object.values(groups).forEach(group => {
+                    const groupSize = group.length;
+                    const offsetStep = 16;
+                    const totalHeight = (groupSize - 1) * offsetStep;
+                    const startY = -totalHeight / 2;
+
+                    group.forEach((item, i) => {
+                        const { person, pos, index, type } = item;
+                        if (hoveredPersonIndex === index) return; // Skip hovered, draw later
+
+                        const segment = type === 'adaptive' ? person.adaptiveSegment : person.naturalSegment;
+                        const disc = getDiscQuadrant(segment);
+                        const discColor = getDiscColor(disc);
+                        
+                        const nameOffset = startY + (i * offsetStep);
+                        const markerOffset = groupSize > 1 ? (i - (groupSize - 1) / 2) * 6 : 0;
+                        const markerX = pos.x + markerOffset;
+                        const markerY = pos.y;
+                        const isDimmed = hoveredPersonIndex !== -1;
+                        const markerColor = isDimmed ? discColor + '40' : discColor;
+                        const textColor = isDimmed ? 'rgba(255, 255, 255, 0.3)' : '#fff';
+
+                        if (markerType === 'adaptive') {
+                            drawStar(markerX, markerY, 5, 8, 4, markerColor, false);
+                        } else {
+                            ctx.beginPath();
+                            ctx.arc(markerX, markerY, 6, 0, Math.PI * 2);
+                            ctx.fillStyle = markerColor;
+                            ctx.fill();
+                        }
+
+                        ctx.font = 'bold 10px Arial';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 4;
+                        ctx.fillStyle = textColor;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(person.name, pos.x, pos.y - 14 + nameOffset);
+                        ctx.shadowBlur = 0;
+                    });
+                });
+
+                // Second pass: draw hovered markers last (on top, larger)
+                Object.values(groups).forEach(group => {
+                    const groupSize = group.length;
+                    const offsetStep = 16;
+                    const totalHeight = (groupSize - 1) * offsetStep;
+                    const startY = -totalHeight / 2;
+
+                    group.forEach((item, i) => {
+                        const { person, pos, index, type } = item;
+                        if (hoveredPersonIndex !== index) return; // Only draw hovered
+
+                        const segment = type === 'adaptive' ? person.adaptiveSegment : person.naturalSegment;
+                        const disc = getDiscQuadrant(segment);
+                        const discColor = getDiscColor(disc);
+                        
+                        const nameOffset = startY + (i * offsetStep);
+                        const markerOffset = groupSize > 1 ? (i - (groupSize - 1) / 2) * 6 : 0;
+                        const markerX = pos.x + markerOffset;
+                        const markerY = pos.y;
+
+                        if (markerType === 'adaptive') {
+                            drawStar(markerX, markerY, 5, 14, 7, discColor, true); // Larger: 14/7 vs 8/4
+                        } else {
+                            ctx.beginPath();
+                            ctx.arc(markerX, markerY, 11, 0, Math.PI * 2); // Larger: 11 vs 6
+                            ctx.fillStyle = discColor;
+                            ctx.fill();
+                            ctx.strokeStyle = '#fff';
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+
+                        ctx.font = 'bold 13px Arial'; // Larger font
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 4;
+                        ctx.fillStyle = '#fff';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(person.name, pos.x, pos.y - 16 + nameOffset);
+                        ctx.shadowBlur = 0;
+                    });
+                });
+            }
+
+            if (filter === 'both' || filter === 'adaptive') {
+                drawMarkerGroup(adaptiveGroups, 'adaptive');
+            }
+            if (filter === 'both' || filter === 'natural') {
+                drawMarkerGroup(naturalGroups, 'natural');
+            }
+        }
+
+        function calculatePosition(segment) {
+            // Segment 61 represents the center of the wheel
+            if (segment === 61) {
+                return { x: centerX, y: centerY };
+            }
+            
+            // Calculate position based on segment number (1-60)
+            // Find which ring and position within that ring
+            const sections = 8;
+            const sectionAngle = (Math.PI * 2) / sections;
+            
+            // Find the ring and position for this segment
+            let foundRing = null;
+            let positionInRing = null;
+            
+            for (let ring = 0; ring < totalRings; ring++) {
+                const ringConfig = ringStructure[ring];
+                let totalSegments;
+                
+                if (ringConfig.segmentsPerSection === 0.5) {
+                    totalSegments = 4; // Only 4 segments in innermost ring
+                } else {
+                    totalSegments = sections * ringConfig.segmentsPerSection;
+                }
+                
+                if (segment >= ringConfig.startNumber && segment < ringConfig.startNumber + totalSegments) {
+                    foundRing = ring;
+                    positionInRing = segment - ringConfig.startNumber;
+                    break;
+                }
+            }
+            
+            if (foundRing === null) {
+                // Default to center if segment is invalid
+                return { x: centerX, y: centerY };
+            }
+            
+            const ringConfig = ringStructure[foundRing];
+            const innerRadius = (radius / totalRings) * foundRing;
+            const outerRadius = (radius / totalRings) * (foundRing + 1);
+            const midRadius = (innerRadius + outerRadius) / 2;
+            
+            let section, segmentInSection;
+            
+            if (ringConfig.segmentsPerSection === 0.5) {
+                // Innermost ring: only sections 0, 2, 4, 6 (segments 57-60) - no rotation
+                const innerSections = [0, 2, 4, 6];
+                section = innerSections[positionInRing];
+                segmentInSection = 0;
+            } else {
+                section = Math.floor(positionInRing / ringConfig.segmentsPerSection);
+                segmentInSection = positionInRing % ringConfig.segmentsPerSection;
+                
+                // Rotate segments 9-56 to place under Implementor instead of Conductor
+                // Segments 1-8 (ring 4) and 57-60 (ring 0) stay in place
+                let sectionOffset = 0;
+                if (segment >= 9 && segment <= 56) {
+                    sectionOffset = -8.5; // Rotate counter-clockwise
+                }
+                section = (section + sectionOffset + sections) % sections;
+            }
+            
+            const baseAngle = section * sectionAngle - Math.PI / 4 - Math.PI / 8;
+            const segmentAngle = sectionAngle / ringConfig.segmentsPerSection;
+            const startAngle = baseAngle + segmentInSection * segmentAngle;
+            const midAngle = startAngle + segmentAngle / 2;
+            
+            return {
+                x: centerX + midRadius * Math.cos(midAngle),
+                y: centerY + midRadius * Math.sin(midAngle)
+            };
+        }
+
+        function addPerson() {
+            const name = document.getElementById('personName').value.trim();
+            const adaptiveSegment = parseInt(document.getElementById('adaptiveSegment').value);
+            const naturalSegment = parseInt(document.getElementById('naturalSegment').value);
+
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+
+            if (adaptiveSegment < 1 || adaptiveSegment > 61) {
+                alert('Adaptive segment must be between 1 and 61');
+                return;
+            }
+
+            if (naturalSegment < 1 || naturalSegment > 61) {
+                alert('Natural segment must be between 1 and 61');
+                return;
+            }
+
+            people.push({
+                name,
+                adaptiveSegment,
+                naturalSegment
+            });
+
+            updatePeopleList();
+            drawWheel();
+            updateSummary();
+
+            // Clear inputs
+            document.getElementById('personName').value = '';
+            document.getElementById('adaptiveSegment').value = '1';
+            document.getElementById('naturalSegment').value = '1';
+        }
+
+        function deletePerson(index) {
+            people.splice(index, 1);
+            updatePeopleList();
+            drawWheel();
+            updateSummary();
+        }
+
+        function updatePeopleList() {
+            const list = document.getElementById('peopleList');
+            list.innerHTML = '';
+
+            people.forEach((person, index) => {
+                const item = document.createElement('div');
+                item.className = 'person-item';
+                const disc = getDiscQuadrant(person.adaptiveSegment);
+                const discColor = getDiscColor(disc);
+                item.innerHTML = `
+                    <div class="person-info">
+                        <div class="person-color" style="background: ${discColor}"></div>
+                        <div>
+                            <strong>${person.name}</strong>
+                            <div class="coordinates">Adaptive: ${person.adaptiveSegment} | Natural: ${person.naturalSegment}</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deletePerson(${index})">Delete</button>
+                `;
+                // Add hover event listeners
+                item.addEventListener('mouseenter', () => {
+                    hoveredPersonIndex = index;
+                    drawWheel();
+                });
+                item.addEventListener('mouseleave', () => {
+                    hoveredPersonIndex = -1;
+                    drawWheel();
+                });
+                list.appendChild(item);
+            });
+
+            updateSummary();
+        }
+
+        function getDiscQuadrant(segment) {
+            if (segment === 61) return 'Neutral';
+            
+            const dSegments = [1, 2, 9, 10, 11, 12, 25, 26, 27, 28, 41, 42, 43, 44, 57];
+            const iSegments = [3, 4, 13, 14, 15, 16, 29, 30, 31, 32, 45, 46, 47, 48, 58];
+            const sSegments = [5, 6, 17, 18, 19, 20, 33, 34, 35, 36, 49, 50, 51, 52, 59];
+            const cSegments = [7, 8, 21, 22, 23, 24, 37, 38, 39, 40, 53, 54, 55, 56, 60];
+            
+            if (dSegments.includes(segment)) return 'D';
+            if (iSegments.includes(segment)) return 'I';
+            if (sSegments.includes(segment)) return 'S';
+            if (cSegments.includes(segment)) return 'C';
+            
+            return null;
+        }
+
+        function drawPieChart(canvasId, discCounts) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 75;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const total = discCounts.D + discCounts.I + discCounts.S + discCounts.C;
+            if (total === 0) return;
+
+            const colors = {
+                'D': '#e94560',
+                'I': '#f9a826',
+                'S': '#26de81',
+                'C': '#4a9eff'
+            };
+
+            let startAngle = -Math.PI / 2; // Start from top
+            const discOrder = ['D', 'I', 'S', 'C'];
+
+            discOrder.forEach(disc => {
+                const count = discCounts[disc];
+                if (count > 0) {
+                    const sliceAngle = (count / total) * Math.PI * 2;
+                    const endAngle = startAngle + sliceAngle;
+
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[disc];
+                    ctx.fill();
+
+                    // Add percentage text if slice is large enough
+                    if (count / total > 0.05) {
+                        const midAngle = startAngle + sliceAngle / 2;
+                        const textX = centerX + (radius * 0.6) * Math.cos(midAngle);
+                        const textY = centerY + (radius * 0.6) * Math.sin(midAngle);
+                        const percentage = (count / total * 100).toFixed(0);
+                        
+                        ctx.fillStyle = '#fff';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(`${percentage}%`, textX, textY);
+                    }
+
+                    startAngle = endAngle;
+                }
+            });
+        }
+
+        function updateSummary() {
+            const adaptiveDiscCounts = { D: 0, I: 0, S: 0, C: 0, Neutral: 0 };
+            const naturalDiscCounts = { D: 0, I: 0, S: 0, C: 0, Neutral: 0 };
+            let taskOriented = 0; // D + C
+            let peopleOriented = 0; // I + S
+            let fastPace = 0; // D + I
+            let slowPace = 0; // S + C
+            let categorizedCount = 0; // Count of people with valid DISC categories
+
+            let taskOrientedNatural = 0;
+            let peopleOrientedNatural = 0;
+            let fastPaceNatural = 0;
+            let slowPaceNatural = 0;
+            let categorizedCountNatural = 0;
+
+            people.forEach(person => {
+                const adaptiveDisc = getDiscQuadrant(person.adaptiveSegment);
+                const naturalDisc = getDiscQuadrant(person.naturalSegment);
+
+                if (adaptiveDisc) {
+                    adaptiveDiscCounts[adaptiveDisc]++;
+                    if (adaptiveDisc === 'D' || adaptiveDisc === 'C') taskOriented++;
+                    if (adaptiveDisc === 'I' || adaptiveDisc === 'S') peopleOriented++;
+                    if (adaptiveDisc === 'D' || adaptiveDisc === 'I') fastPace++;
+                    if (adaptiveDisc === 'S' || adaptiveDisc === 'C') slowPace++;
+                    categorizedCount++;
+                }
+
+                if (naturalDisc) {
+                    naturalDiscCounts[naturalDisc]++;
+                    if (naturalDisc === 'D' || naturalDisc === 'C') taskOrientedNatural++;
+                    if (naturalDisc === 'I' || naturalDisc === 'S') peopleOrientedNatural++;
+                    if (naturalDisc === 'D' || naturalDisc === 'I') fastPaceNatural++;
+                    if (naturalDisc === 'S' || naturalDisc === 'C') slowPaceNatural++;
+                    categorizedCountNatural++;
+                }
+            });
+
+            const total = categorizedCount;
+            const totalNatural = categorizedCountNatural;
+
+            // Draw pie charts
+            drawPieChart('adaptivePie', adaptiveDiscCounts);
+            drawPieChart('naturalPie', naturalDiscCounts);
+
+            // Update legends with percentages
+            const adaptiveLegend = document.getElementById('adaptiveLegend');
+            adaptiveLegend.innerHTML = '';
+            ['D', 'I', 'S', 'C'].forEach(disc => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-color disc-${disc.toLowerCase()}"></div>${disc}`;
+                adaptiveLegend.appendChild(item);
+            });
+
+            const naturalLegend = document.getElementById('naturalLegend');
+            naturalLegend.innerHTML = '';
+            ['D', 'I', 'S', 'C'].forEach(disc => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-color disc-${disc.toLowerCase()}"></div>${disc}`;
+                naturalLegend.appendChild(item);
+            });
+
+            // Group people by DISC category for Adaptive
+            const discCategories = document.getElementById('discCategories');
+            discCategories.innerHTML = '';
+
+            const peopleByDisc = { D: [], I: [], S: [], C: [], Neutral: [] };
+            people.forEach(person => {
+                const disc = getDiscQuadrant(person.adaptiveSegment);
+                if (disc) {
+                    peopleByDisc[disc].push(person.name);
+                }
+            });
+
+            const discColors = {
+                'D': '#e94560',
+                'I': '#f9a826',
+                'S': '#26de81',
+                'C': '#4a9eff',
+                'Neutral': '#888888'
+            };
+
+            ['D', 'I', 'S', 'C', 'Neutral'].forEach(disc => {
+                // Skip Neutral if no people in that category
+                if (disc === 'Neutral' && peopleByDisc[disc].length === 0) return;
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'disc-category';
+
+                const peopleList = peopleByDisc[disc].map(name =>
+                    `<div class="disc-category-person" style="font-weight: bold; color: #fff;">${name}</div>`
+                ).join('');
+
+                // Add description if available
+                const template = communicationTemplates[disc];
+                const descriptionHtml = template ? `<div class="disc-category-person" style="color: #ccc; font-size: 0.75rem; line-height: 1.3; margin-bottom: 8px;">${template.description}</div>` : '';
+
+                // Get quadrant designation
+                const designations = {
+                    'D': 'Fast / Task',
+                    'I': 'Fast / People',
+                    'S': 'Slow / People',
+                    'C': 'Slow / Task',
+                    'Neutral': 'Neutral'
+                };
+
+                categoryDiv.innerHTML = `
+                    <div class="disc-category-header">
+                        <div class="disc-category-color" style="background: ${discColors[disc]}"></div>
+                        ${disc} - ${designations[disc]} (${peopleByDisc[disc].length})
+                    </div>
+                    <div class="disc-category-people">
+                        ${descriptionHtml}
+                        ${peopleList || '<div class="disc-category-person" style="color: #666;">None</div>'}
+                    </div>
+                `;
+
+                discCategories.appendChild(categoryDiv);
+            });
+
+            // Group people by DISC category for Natural
+            const discCategoriesNatural = document.getElementById('discCategoriesNatural');
+            discCategoriesNatural.innerHTML = '';
+
+            const peopleByDiscNatural = { D: [], I: [], S: [], C: [], Neutral: [] };
+            people.forEach(person => {
+                const disc = getDiscQuadrant(person.naturalSegment);
+                if (disc) {
+                    peopleByDiscNatural[disc].push(person.name);
+                }
+            });
+
+            ['D', 'I', 'S', 'C', 'Neutral'].forEach(disc => {
+                // Skip Neutral if no people in that category
+                if (disc === 'Neutral' && peopleByDiscNatural[disc].length === 0) return;
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'disc-category';
+
+                const peopleList = peopleByDiscNatural[disc].map(name =>
+                    `<div class="disc-category-person" style="font-weight: bold; color: #fff;">${name}</div>`
+                ).join('');
+
+                // Add description if available
+                const template = communicationTemplates[disc];
+                const descriptionHtml = template ? `<div class="disc-category-person" style="color: #ccc; font-size: 0.75rem; line-height: 1.3; margin-bottom: 8px;">${template.description}</div>` : '';
+
+                // Get quadrant designation
+                const designations = {
+                    'D': 'Fast / Task',
+                    'I': 'Fast / People',
+                    'S': 'Slow / People',
+                    'C': 'Slow / Task',
+                    'Neutral': 'Neutral'
+                };
+
+                categoryDiv.innerHTML = `
+                    <div class="disc-category-header">
+                        <div class="disc-category-color" style="background: ${discColors[disc]}"></div>
+                        ${disc} - ${designations[disc]} (${peopleByDiscNatural[disc].length})
+                    </div>
+                    <div class="disc-category-people">
+                        ${descriptionHtml}
+                        ${peopleList || '<div class="disc-category-person" style="color: #666;">None</div>'}
+                    </div>
+                `;
+
+                discCategoriesNatural.appendChild(categoryDiv);
+            });
+
+            // Task vs People orientation (Adaptive)
+            const orientationBar = document.getElementById('orientationBar');
+            const taskPercent = total > 0 ? (taskOriented / total * 100) : 0;
+            const peoplePercent = total > 0 ? (peopleOriented / total * 100) : 0;
+
+            // Create gradient for Task (Red to Blue) and People (Green to Yellow)
+            const taskGradient = `linear-gradient(135deg, #e94560 0%, #4a9eff 100%)`;
+            const peopleGradient = `linear-gradient(135deg, #26de81 0%, #f9a826 100%)`;
+
+            orientationBar.innerHTML = `
+                <div class="orientation-gradient" style="width: ${taskPercent}%; background: ${taskGradient}">Task ${taskPercent.toFixed(0)}%</div>
+                <div class="orientation-gradient" style="width: ${peoplePercent}%; background: ${peopleGradient}">People ${peoplePercent.toFixed(0)}%</div>
+            `;
+
+            // Fast vs Slow pace (Adaptive)
+            const paceBar = document.getElementById('paceBar');
+            const fastPercent = total > 0 ? (fastPace / total * 100) : 0;
+            const slowPercent = total > 0 ? (slowPace / total * 100) : 0;
+
+            // Create gradient for Fast (Red to Yellow) and Slow (Green to Blue)
+            const fastGradient = `linear-gradient(135deg, #e94560 0%, #f9a826 100%)`;
+            const slowGradient = `linear-gradient(135deg, #26de81 0%, #4a9eff 100%)`;
+
+            paceBar.innerHTML = `
+                <div class="orientation-gradient" style="width: ${fastPercent}%; background: ${fastGradient}">Fast ${fastPercent.toFixed(0)}%</div>
+                <div class="orientation-gradient" style="width: ${slowPercent}%; background: ${slowGradient}">Slow ${slowPercent.toFixed(0)}%</div>
+            `;
+
+            // Total count (Adaptive)
+            document.getElementById('totalCount').textContent = `Total Team Members: ${total}`;
+
+            // Task vs People orientation (Natural)
+            const orientationBarNatural = document.getElementById('orientationBarNatural');
+            const taskPercentNatural = totalNatural > 0 ? (taskOrientedNatural / totalNatural * 100) : 0;
+            const peoplePercentNatural = totalNatural > 0 ? (peopleOrientedNatural / totalNatural * 100) : 0;
+
+            orientationBarNatural.innerHTML = `
+                <div class="orientation-gradient" style="width: ${taskPercentNatural}%; background: ${taskGradient}">Task ${taskPercentNatural.toFixed(0)}%</div>
+                <div class="orientation-gradient" style="width: ${peoplePercentNatural}%; background: ${peopleGradient}">People ${peoplePercentNatural.toFixed(0)}%</div>
+            `;
+
+            // Fast vs Slow pace (Natural)
+            const paceBarNatural = document.getElementById('paceBarNatural');
+            const fastPercentNatural = totalNatural > 0 ? (fastPaceNatural / totalNatural * 100) : 0;
+            const slowPercentNatural = totalNatural > 0 ? (slowPaceNatural / totalNatural * 100) : 0;
+
+            paceBarNatural.innerHTML = `
+                <div class="orientation-gradient" style="width: ${fastPercentNatural}%; background: ${fastGradient}">Fast ${fastPercentNatural.toFixed(0)}%</div>
+                <div class="orientation-gradient" style="width: ${slowPercentNatural}%; background: ${slowGradient}">Slow ${slowPercentNatural.toFixed(0)}%</div>
+            `;
+
+            // Total count (Natural)
+            document.getElementById('totalCountNatural').textContent = `Total Team Members: ${totalNatural}`;
+        }
+
+        // Initial draw
+        updatePeopleList();
+        drawWheel();
+
+        // Canvas mouse event listeners for hover detection
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            let foundIndex = -1;
+            const hoverRadius = 15;
+            
+            // Use cached positions instead of recalculating
+            cachedPositions.forEach((pos, index) => {
+                if (!pos) return;
+                
+                const adaptiveDist = Math.sqrt(Math.pow(mouseX - pos.adaptive.x, 2) + Math.pow(mouseY - pos.adaptive.y, 2));
+                if (adaptiveDist < hoverRadius) {
+                    foundIndex = index;
+                }
+                
+                const naturalDist = Math.sqrt(Math.pow(mouseX - pos.natural.x, 2) + Math.pow(mouseY - pos.natural.y, 2));
+                if (naturalDist < hoverRadius) {
+                    foundIndex = index;
+                }
+            });
+            
+            if (foundIndex !== hoveredPersonIndex) {
+                hoveredPersonIndex = foundIndex;
+                drawWheel();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (hoveredPersonIndex !== -1) {
+                hoveredPersonIndex = -1;
+                drawWheel();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+<!-- Why the 4? Simplify the model
+Adapted vs Natural, which do we actually care about? Adapted at work(?)
+Get to Useful - Modify Communication Style primary driver to get to understanding
+What does each Category Need? (Re: Action, Connection, Stability, Accuracy)
+	- Action
+	- Connection
+	- Stability
+	- Accuracy -->
+
